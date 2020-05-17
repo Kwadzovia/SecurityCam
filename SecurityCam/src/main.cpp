@@ -36,25 +36,25 @@ void Go_To_Sleep(){
 
 void loop() {
   digitalWrite(debugLED,HIGH);
-  delay(10000);
-  Go_To_Sleep();
+  //Go_To_Sleep();
 
-  delay(10000);
 
   if (initialDelay == false){
     initialDelay = true;
     delay(3000);
   }
-  // put your main code here, to run repeatedly:
-  if(digitalRead(motionInterrupt) == HIGH)
-  {
-    digitalWrite(debugLED,HIGH);
-  }
-  else
-  {
-    digitalWrite(debugLED,LOW);
-  }
+
   
-  Serial.println(digitalRead(motionInterrupt));
+  // // put your main code here, to run repeatedly:
+  // if(digitalRead(motionInterrupt) == HIGH)
+  // {
+  //   digitalWrite(debugLED,HIGH);
+  // }
+  // else
+  // {
+  //   digitalWrite(debugLED,LOW);
+  // }
+  
+  // Serial.println(digitalRead(motionInterrupt));
 }
 
