@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <avr/sleep.h>
 
-#include <Adafruit_VC0706.h>
+#include "Adafruit_VC0706.h"
 #include <SPI.h>
 #include <SD.h>
 
@@ -11,8 +11,9 @@
 
 
 const int debugLED = A5;
+const int captureLED = A4;
 const int motionInterrupt = 6;
-const int motorControlVcc = A4;
+const int motorControlVcc = A3;
 const int motorControlENABLE = 5;
 
 
@@ -41,7 +42,11 @@ unsigned long currentTime = 0;
 
   Adafruit_VC0706 cam = Adafruit_VC0706(&cameraconnection);
 
-
+void wakeUp();
+void cameraOFF();
+void cameraON();
+void Go_To_Sleep();
+void Take_Picture();
 
 
 void setup() {
@@ -50,20 +55,77 @@ void setup() {
   pinMode(LED_BUILTIN,OUTPUT);
   pinMode(debugLED,OUTPUT);
   pinMode(motionInterrupt,INPUT);
-  
+  pinMode(captureLED,OUTPUT);
+
+  pinMode(motorControlVcc,OUTPUT);
+  pinMode(motorControlENABLE,OUTPUT);
+
   cam.setMotionDetect(true);           // turn it on
   //cam.setMotionDetect(false);        // turn it off   (default)
 
 }
+
+
+
+
+void loop() {
+  currentTime = millis();
+  digitalWrite(debugLED,HIGH);
+  cam.setMotionDetect(true);
+
+  if (initialDelay == false){
+    initialDelay = true;
+    delay(5000);
+  }
+
+  
+  //if(digitalRead(motionInterrupt) == HIGH)
+  
+  if (cam.motionDetected())
+  { 
+
+    cam.setMotionDetect(false);
+    digitalWrite(captureLED,HIGH);
+    Take_Picture();
+    digitalWrite(captureLED,LOW);
+    cam.setMotionDetect(true);
+  }
+  else
+  {
+    if( currentTime-initialTime >= 15000)
+    { 
+      //15 seconds runtime
+      digitalWrite(debugLED,LOW);
+      cam.setMotionDetect(false);
+
+      //Turn off camera
+      cameraOFF();
+      Go_To_Sleep();
+    }
+  }
+  
+  // Serial.println(digitalRead(motionInterrupt));
+}
+
 
 void wakeUp(){
   sleep_disable();
   detachInterrupt(digitalPinToInterrupt(3));
   Serial.println("BODY DETECTED");
   //Turn on Camera
-
+  cameraON();
   
   initialTime = millis();
+}
+
+void cameraOFF(){
+  digitalWrite(motorControlENABLE,LOW);
+  digitalWrite(motorControlVcc,LOW);
+}
+
+void cameraON(){
+  digitalWrite(motorControlENABLE,HIGH);
+  digitalWrite(motorControlVcc,HIGH);
 }
 
 void Go_To_Sleep(){
@@ -156,47 +218,3 @@ void Take_Picture(){
   Serial.print(time); Serial.println(" ms elapsed");
 
 }
-
-void cameraOFF(){
-
-}
-
-void cameraON(){
-
-}
-
-void loop() {
-  currentTime = millis();
-  digitalWrite(debugLED,HIGH);
-  cam.setMotionDetect(true);
-
-  if (initialDelay == false){
-    initialDelay = true;
-    delay(5000);
-  }
-
-  
-  //if(digitalRead(motionInterrupt) == HIGH)
-  
-  if (cam.motionDetected())
-  { 
-    cam.setMotionDetect(false);
-    Take_Picture();
-    cam.setMotionDetect(true);
-  }
-  else
-  {
-    if( currentTime-initialTime >= 15000)
-    { 
-      //15 seconds runtime
-      digitalWrite(debugLED,LOW);
-      cam.setMotionDetect(false);
-
-      //Turn off camera
-      Go_To_Sleep();
-    }
-  }
-  
-  // Serial.println(digitalRead(motionInterrupt));
-}
-
